@@ -5,25 +5,38 @@ const ContactSection = () => {
   const form = useRef();
   const [messageSent, setMessageSent] = useState(false);
 
-  const sendEmail = (e) => {
+  const sendEmail = async (e) => {
     e.preventDefault();
 
-    emailjs
-      .sendForm(
-        "your_service_id", // replace with your actual SERVICE ID
-        "your_template_id", // replace with your actual TEMPLATE ID
+    try {
+      // Send message to admin
+      await emailjs.sendForm(
+        "service_xa6zxga", // admin notification template
+        "template_6ed64rg",
         form.current,
-        "your_public_key" // replace with your actual PUBLIC KEY
-      )
-      .then(
-        () => {
-          setMessageSent(true);
-          form.current.reset();
-        },
-        (error) => {
-          console.error("FAILED...", error.text);
-        }
+        "mI9NGiI5z2rZceOa0" // your public key
       );
+
+      // Prepare auto-reply
+      const formData = new FormData(form.current);
+      const emailParams = {
+        name: formData.get("name"),
+        email: formData.get("email"),
+      };
+
+      // Send auto-reply to user
+      await emailjs.send(
+        "service_xa6zxga",
+        "template_z5083jz", // user reply template
+        emailParams,
+        "mI9NGiI5z2rZceOa0"
+      );
+
+      setMessageSent(true);
+      form.current.reset();
+    } catch (error) {
+      console.error("FAILED...", error.text);
+    }
   };
 
   return (
@@ -64,9 +77,9 @@ const ContactSection = () => {
               <label className="block mb-1 text-gray-700">Full Name</label>
               <input
                 type="text"
-                name="user_name"
+                name="name"
                 required
-                className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-400"
+                className="w-full border border-gray-300 rounded-md px-4 py-2"
                 placeholder="Your name"
               />
             </div>
@@ -74,18 +87,18 @@ const ContactSection = () => {
               <label className="block mb-1 text-gray-700">Email</label>
               <input
                 type="email"
-                name="user_email"
+                name="email"
                 required
-                className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-400"
+                className="w-full border border-gray-300 rounded-md px-4 py-2"
                 placeholder="you@example.com"
               />
             </div>
             <div>
               <label className="block mb-1 text-gray-700">Message</label>
               <textarea
-                name="message"
+                name="services"
                 required
-                className="w-full border border-gray-300 rounded-md px-4 py-2 h-32 resize-none focus:outline-none focus:ring-2 focus:ring-teal-400"
+                className="w-full border border-gray-300 rounded-md px-4 py-2 h-32 resize-none"
                 placeholder="Type your message..."
               ></textarea>
             </div>

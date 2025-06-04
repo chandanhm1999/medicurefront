@@ -8,31 +8,43 @@ const CheckoutPage = () => {
   const { cart, total } = useContext(CartContext);
   const formRef = useRef();
 
-  const sendEmail = (e) => {
-    e.preventDefault();
-
-    emailjs
-      .sendForm(
-        "your_service_id", // <-- Replace with your actual service ID
-        "your_template_id", // <-- Replace with your template ID
-        formRef.current,
-        "your_public_key" // <-- Replace with your public key
-      )
-      .then(
-        () => {
-          alert("Order placed and email sent!");
-          formRef.current.reset();
-        },
-        (error) => {
-          alert("Failed to send email: " + error.text);
-        }
-      );
-  };
-
-  // Dynamically generate product summary
+  // Product summary
   const formattedProductDetails = cart
     .map((item, index) => `${index + 1}. ${item.title} (Qty: ${item.amount})`)
     .join("\n");
+
+  const sendEmail = async (e) => {
+    e.preventDefault();
+
+    try {
+      // Send email to admin
+      await emailjs.sendForm(
+        "service_xa6zxga", // admin notification template
+        "template_6ed64rg",
+        formRef.current,
+        "mI9NGiI5z2rZceOa0"
+      );
+
+      // Send auto-reply to user
+      const formData = new FormData(formRef.current);
+      const emailParams = {
+        name: formData.get("name"),
+        email: formData.get("email"),
+      };
+
+      await emailjs.send(
+        "service_xa6zxga",
+        "template_z5083jz", // user reply template
+        emailParams,
+        "mI9NGiI5z2rZceOa0"
+      );
+
+      alert("Order placed and email sent!");
+      formRef.current.reset();
+    } catch (error) {
+      alert("Failed to send email: " + error.text);
+    }
+  };
 
   return (
     <div className="p-6 max-w-4xl mt-16 mx-auto">
@@ -47,9 +59,8 @@ const CheckoutPage = () => {
         <p className="font-bold mt-4">Total: Rs {total.toFixed(2)}</p>
       </div>
 
-      {/* User Details Form */}
+      {/* Form */}
       <form ref={formRef} onSubmit={sendEmail} className="space-y-4">
-        {/* Hidden fields */}
         <input type="hidden" name="cart_summary" value={JSON.stringify(cart)} />
         <input
           type="hidden"
@@ -59,14 +70,14 @@ const CheckoutPage = () => {
 
         <input
           type="text"
-          name="user_name"
+          name="name"
           placeholder="Your Name"
           required
           className="w-full border p-2 rounded"
         />
         <input
           type="email"
-          name="user_email"
+          name="email"
           placeholder="Your Email"
           required
           className="w-full border p-2 rounded"
@@ -88,6 +99,7 @@ const CheckoutPage = () => {
           placeholder="Address & Any additional message"
           className="w-full border p-2 rounded h-24"
         ></textarea>
+
         <button
           type="submit"
           className="bg-primary text-white px-4 py-2 rounded w-full"

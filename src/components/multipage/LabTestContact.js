@@ -4,25 +4,37 @@ import emailjs from "@emailjs/browser";
 const LabTestContact = () => {
   const formRef = useRef();
 
-  const sendEmail = (e) => {
+  const sendEmail = async (e) => {
     e.preventDefault();
 
-    emailjs
-      .sendForm(
-        "your_service_id", // Replace with your EmailJS service ID
-        "your_template_id", // Replace with your EmailJS template ID
+    try {
+      // Send email to admin
+      await emailjs.sendForm(
+        "service_xa6zxga", // admin notification template
+        "template_6ed64rg",
         formRef.current,
-        "your_public_key" // Replace with your EmailJS public key
-      )
-      .then(
-        () => {
-          alert("Your message has been sent!");
-          formRef.current.reset();
-        },
-        (error) => {
-          alert("Failed to send message: " + error.text);
-        }
+        "mI9NGiI5z2rZceOa0"
       );
+
+      // Send auto-reply to user
+      const formData = new FormData(formRef.current);
+      const emailParams = {
+        name: formData.get("name"),
+        email: formData.get("email"),
+      };
+
+      await emailjs.send(
+        "service_xa6zxga",
+        "template_z5083jz", // user reply template
+        emailParams,
+        "mI9NGiI5z2rZceOa0"
+      );
+
+      alert("To Connect Lab email as been sent!");
+      formRef.current.reset();
+    } catch (error) {
+      alert("Failed to send email: " + error.text);
+    }
   };
 
   return (
@@ -44,32 +56,33 @@ const LabTestContact = () => {
         <form ref={formRef} onSubmit={sendEmail} className="space-y-4">
           <input
             type="text"
-            name="user_name"
+            name="name"
             placeholder="Your Name"
             required
             className="w-full border p-2 rounded"
           />
           <input
             type="email"
-            name="user_email"
+            name="email"
             placeholder="Your Email"
             required
             className="w-full border p-2 rounded"
           />
           <input
-            type="tel"
-            name="user_phone"
-            placeholder="Phone Number"
-            required
-            className="w-full border p-2 rounded"
-          />
-          <input
             type="text"
-            name="test_name"
+            name="services"
             placeholder="Test Name (e.g., CBC, Lipid Profile)"
             required
             className="w-full border p-2 rounded"
           />
+          <input
+            type="tel"
+            name="coupon_code"
+            placeholder="Phone Number"
+            required
+            className="w-full border p-2 rounded"
+          />
+
           <input
             type="text"
             name="coupon_code"
