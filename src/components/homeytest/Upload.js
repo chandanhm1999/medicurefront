@@ -6,34 +6,39 @@ const Upload = () => {
   const [uploading, setUploading] = useState(false);
 
   const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
-    setFile(selectedFile);
+    setFile(e.target.files[0]);
   };
 
   const handleUpload = async () => {
-    if (!file) return;
+    if (!file) return alert("No file selected!");
 
     setUploading(true);
-
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("upload_preset", "YOUR_UPLOAD_PRESET"); // Replace this
+    formData.append("upload_preset", "medicure_preset"); // 🔄 your unsigned preset
+    // Optional: formData.append("folder", "prescriptions");
 
     try {
-      const res = await fetch(
-        "https://api.cloudinary.com/v1_1/dcbmadhmo/auto/upload", // <-- your cloud_name here
+      const response = await fetch(
+        "https://api.cloudinary.com/v1_1/dcbmadhmo/auto/upload", // 🔄 your cloud name
         {
           method: "POST",
           body: formData,
         }
       );
 
-      const data = await res.json();
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Upload failed (${response.status}): ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log("✅ Cloudinary response:", data);
       setFileUrl(data.secure_url);
-      alert("✅ Prescription uploaded to Cloudinary!");
-    } catch (err) {
-      console.error("Upload failed:", err);
-      alert("❌ Upload failed.");
+      alert("✅ File uploaded!");
+    } catch (error) {
+      console.error("❌ Upload Error:", error);
+      alert("Upload failed. Check console for details.");
     } finally {
       setUploading(false);
     }
@@ -42,7 +47,7 @@ const Upload = () => {
   return (
     <section className="bg-white py-10 px-4">
       <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8 items-start">
-        {/* Left Section - Upload Prescription */}
+        {/* Left Section */}
         <div className="flex items-center gap-6 bg-blue-50 p-6 rounded-lg shadow">
           <img
             src="https://assets.pharmeasy.in/apothecary/images/rx_upload.svg?dim=1440x0"
@@ -73,7 +78,7 @@ const Upload = () => {
                   rel="noopener noreferrer"
                   className="underline text-blue-700"
                 >
-                  View file
+                  View File
                 </a>
               </p>
             )}
@@ -88,7 +93,7 @@ const Upload = () => {
           </div>
         </div>
 
-        {/* Right Section - How it Works */}
+        {/* Right Section */}
         <div className="bg-orange-50 p-6 rounded-lg shadow">
           <h4 className="text-lg font-semibold text-gray-800 mb-4">
             How does this work?
@@ -103,11 +108,11 @@ const Upload = () => {
               uploaded to Cloudinary
             </li>
             <li>
-              <span className="font-bold text-primary">3.</span> You’ll get a
-              sharable URL
+              <span className="font-bold text-primary">3.</span> You'll get a
+              public URL instantly
             </li>
             <li>
-              <span className="font-bold text-primary">4.</span> We’ll contact
+              <span className="font-bold text-primary">4.</span> We'll contact
               you to confirm the order
             </li>
           </ol>
